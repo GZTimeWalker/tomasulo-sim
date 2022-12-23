@@ -1,5 +1,6 @@
 use super::*;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Type {
     ADDD,
@@ -146,10 +147,10 @@ impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?} {} ", self.op, self.dest)?;
         if let Some(src1) = self.src1.as_ref() {
-            write!(f, "{} ", src1)?;
+            write!(f, "{src1} ")?;
         }
         if let Some(src2) = self.src2.as_ref() {
-            write!(f, "{} ", src2)?;
+            write!(f, "{src2} ")?;
         }
         Ok(())
     }
@@ -183,7 +184,7 @@ mod tests {
                     continue;
                 }
                 if let Some(inst) = Instruction::parse(line.trim()) {
-                    println!("{}", inst);
+                    println!("{inst}");
                 }
             }
             println!();

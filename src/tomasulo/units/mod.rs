@@ -59,9 +59,9 @@ impl From<RegId> for Unit {
 impl std::fmt::Display for Unit {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Unit::Rs(id) => write!(f, "{}", id),
-            Unit::Fu(id) => write!(f, "{}", id),
-            Unit::Regs(id) => write!(f, "{}", id),
+            Unit::Rs(id) => write!(f, "{id}"),
+            Unit::Fu(id) => write!(f, "{id}"),
+            Unit::Regs(id) => write!(f, "{id}"),
         }
     }
 }

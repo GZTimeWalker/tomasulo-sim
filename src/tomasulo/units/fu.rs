@@ -18,17 +18,12 @@ pub struct FloatingUnit {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default)]
 pub struct FloatingUnitInner {
     pub qi: Option<RsId>,
 }
 
-impl Default for FloatingUnitInner {
-    fn default() -> Self {
-        Self {
-            qi: None,
-        }
-    }
-}
+
 
 impl FloatingUnit {
     pub fn new() -> FloatingUnit {
