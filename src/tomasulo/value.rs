@@ -68,7 +68,7 @@ impl ValueInner {
             ValueInner::Imm(v) => format!("{v}"),
             ValueInner::Float(v) => format!("{v:2.2}"),
             ValueInner::Unit(u) => format!("{u}"),
-            ValueInner::MemAddr(_) => format!("M[..]"),
+            ValueInner::MemAddr(_) => "M[..]".to_string(),
             ValueInner::Op(t, _, _) => format!("..{}..", t.op_str()),
         }
     }

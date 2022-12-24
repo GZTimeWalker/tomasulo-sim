@@ -82,11 +82,11 @@ impl std::fmt::Debug for FloatingUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         for (i, fu) in self.inner.iter().enumerate() {
             let qi = match fu.qi {
-                Some(qi) => format!("{}", qi),
+                Some(qi) => format!("{qi}"),
                 None => "None  ".to_string(),
             };
             let value = match &fu.value {
-                Some(value) => style(format!("{}", value)).green().underlined(),
+                Some(value) => style(format!("{value}")).green().underlined(),
                 None => style("None".to_string()).white(),
             };
             let fuid = FuId::new(i as u8 * 2);

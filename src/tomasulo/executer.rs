@@ -47,7 +47,7 @@ impl Executer {
             self.issue();
             let comp = self.execute();
             self.finished = self.insts_comp.len() == self.inst_count;
-            println!("{:?}", self);
+            println!("{self:?}");
             self.write(comp);
 
             self.print_insts();
@@ -56,7 +56,7 @@ impl Executer {
 
     fn print_insts(&mut self) {
         for inst in self.insts_comp.iter_mut() {
-            println!("{}", inst);
+            println!("{inst}");
         }
     }
 

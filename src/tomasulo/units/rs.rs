@@ -119,14 +119,9 @@ impl ReservationStation {
                         }
                     }
                 }
-            } else if inner.state == RsState::Calculating {
-                match inner.exec(cycle) {
-                    RsState::Ready => {
-                        ready.push(inner.id);
-                        inner.state = RsState::Ready;
-                    }
-                    _ => {}
-                }
+            } else if inner.state == RsState::Calculating && inner.exec(cycle) == RsState::Ready {
+                ready.push(inner.id);
+                inner.state = RsState::Ready;
             }
         }
         ready
@@ -166,7 +161,7 @@ impl RsInner {
                             println!(
                                 "{} {}",
                                 style("fu").bold().dim(),
-                                style(format!("{:?}", fu)).bold().dim()
+                                style(format!("{fu:?}")).bold().dim()
                             );
                             match &fu.value {
                                 Some(value) => {
@@ -178,7 +173,7 @@ impl RsInner {
                             }
                         }
                         _ => {
-                            panic!("src1 is not a fu: {:?}", src1)
+                            panic!("src1 is not a fu: {src1:?}")
                         }
                     }
                 }
@@ -190,7 +185,7 @@ impl RsInner {
                             println!(
                                 "{} {}",
                                 style("fu").bold().dim(),
-                                style(format!("{:?}", fu)).bold().dim()
+                                style(format!("{fu:?}")).bold().dim()
                             );
                             match &fu.value {
                                 Some(value) => {
@@ -202,7 +197,7 @@ impl RsInner {
                             }
                         }
                         _ => {
-                            panic!("src2 is not a fu: {:?}", src2)
+                            panic!("src2 is not a fu: {src2:?}")
                         }
                     }
                 }
@@ -285,7 +280,7 @@ impl From<Type> for RsType {
 impl std::fmt::Debug for ReservationStation {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         for inner in self.inner.values() {
-            writeln!(f, "{}", inner)?;
+            writeln!(f, "{inner}")?;
         }
         Ok(())
     }
@@ -306,15 +301,15 @@ impl std::fmt::Display for RsInner {
             None => style(String::from("None ")).white(),
         };
         let qj = match self.qj.as_ref() {
-            Some(v) => format!("{}", v),
+            Some(v) => format!("{v}"),
             None => String::from("None  "),
         };
         let qk = match self.qk.as_ref() {
-            Some(v) => format!("{}", v),
+            Some(v) => format!("{v}"),
             None => String::from("None  "),
         };
         let addr = match self.addr.as_ref() {
-            Some(v) => style(format!("{}", v)).blue(),
+            Some(v) => style(format!("{v}")).blue(),
             None => style(String::from("None ")).white(),
         };
 

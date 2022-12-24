@@ -156,14 +156,14 @@ impl Type {
 impl std::fmt::Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let s = match self {
-            Type::ADDD => style(format!("{:?}", self)).green(),
-            Type::SUBD => style(format!("{:?}", self)).red(),
-            Type::MULTD => style(format!("{:?}", self)).yellow(),
-            Type::DIVD => style(format!("{:?}", self)).blue(),
-            Type::LD => style(format!("{:?}", self)).cyan(),
-            Type::SD => style(format!("{:?}", self)).magenta(),
+            Type::ADDD => style(format!("{self:?}")).green(),
+            Type::SUBD => style(format!("{self:?}")).red(),
+            Type::MULTD => style(format!("{self:?}")).yellow(),
+            Type::DIVD => style(format!("{self:?}")).blue(),
+            Type::LD => style(format!("{self:?}")).cyan(),
+            Type::SD => style(format!("{self:?}")).magenta(),
         };
-        write!(f, "{:<5}", s)
+        write!(f, "{s:<5}")
     }
 }
 
@@ -230,7 +230,7 @@ mod tests {
                 if line.is_empty() {
                     continue;
                 }
-                if let Some(inst) = line.trim().parse::<Instruction>().ok() {
+                if let Ok(inst) = line.trim().parse::<Instruction>() {
                     println!("{inst}, {inst:?}");
                 }
             }
