@@ -42,17 +42,17 @@ impl Executer {
 
     pub fn run(&mut self) {
         while !self.finished {
+            println!("{:=^60}", style("=").bold());
             self.cycle += 1;
             self.issue();
             let comp = self.exec();
             self.write(&comp);
             self.finished = self.insts_comp.len() == self.inst_count;
             print!("{self:?}");
-
             self.clear_rs(&comp);
 
-            if self.cycle > 100 {
-                panic!("Cycle limit exceeded. (100 cycles)");
+            if self.cycle > 50 {
+                panic!("Cycle limit exceeded. (40 cycles)");
             }
         }
         self.print_insts();
@@ -71,11 +71,19 @@ impl Executer {
         if let Some(inst) = self.insts.pop_front() {
             if let Some(rs_id) = self.rs.get_free(inst.op.into()) {
                 if let Some(rs) = self.rs.get_mut(rs_id) {
-                    if let Unit::Fu(id) = inst.dest {
-                        self.fu.mark_busy(id, rs_id);
-                        rs.apply(inst, &self.fu, self.cycle);
-                    } else {
-                        panic!("Destination of instruction is not a register.")
+                    match inst.op {
+                        Type::SD => {
+                            // we do not need to mark the FU as busy when storing
+                            rs.apply(inst, &self.fu, self.cycle);
+                        }
+                        _ => {
+                            if let Unit::Fu(id) = inst.dest {
+                                self.fu.mark_busy(id, rs_id);
+                                rs.apply(inst, &self.fu, self.cycle);
+                            } else {
+                                panic!("Destination of instruction is not a register.")
+                            }
+                        }
                     }
                     return;
                 }

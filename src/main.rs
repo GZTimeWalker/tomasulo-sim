@@ -4,7 +4,8 @@ use tomasulo::{executer, Instruction};
 mod tomasulo;
 
 fn main() {
-    let insts = [r"
+    let insts = [
+        r"
         LD F2 0 R2
         LD F4 0 R3
         DIVD F0 F4 F2
@@ -13,13 +14,13 @@ fn main() {
         SD F6 0 R3
         MULTD F6 F0 F2
         SD F6 0 R1",
-        r"
-        LD F6 34+ R2
-        LD F2 45+ R3
-        MULTD F0 F2 F4
-        SUBD F8 F6 F2
-        DIVD F10 F0 F6
-        ADDD F6 F8 F2",
+        // r"
+        // LD F6 34+ R2
+        // LD F2 45+ R3
+        // MULTD F0 F2 F4
+        // SUBD F8 F6 F2
+        // DIVD F10 F0 F6
+        // ADDD F6 F8 F2",
     ];
 
     let parsed_insts = insts

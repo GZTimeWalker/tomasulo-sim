@@ -139,10 +139,28 @@ impl RsInner {
         inst.emit(cycle);
 
         match inst.op {
-            Type::LD | Type::SD => {
+            Type::LD => {
                 // assume that the address is always ready
                 self.addr.replace(inst.src1.clone().unwrap());
                 self.vk.replace(inst.src2.clone().unwrap());
+            }
+            Type::SD => {
+                // assume that the address is always ready
+                self.addr.replace(inst.src1.clone().unwrap());
+                self.vj.replace(inst.src2.clone().unwrap());
+
+                // the dest of SD is the value to be stored
+                if let Unit::Fu(fuid) = inst.dest {
+                    let fu = fu.get(fuid);
+                    match &fu.value {
+                        Some(value) => {
+                            self.vk.replace(value.clone());
+                        }
+                        None => {
+                            self.qk = fu.qi;
+                        }
+                    }
+                }
             }
             _ => {
                 // use fu to calculate the value
@@ -202,8 +220,7 @@ impl RsInner {
 
     pub fn is_ready(&self) -> bool {
         match self.inst.as_ref().unwrap().op {
-            Type::SD => true, // assume that the address is always ready
-            Type::LD => self.vk.is_some(),
+            Type::LD | Type::SD => self.vk.is_some(),
             _ => self.vj.is_some() && self.vk.is_some(),
         }
     }
