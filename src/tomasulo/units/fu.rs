@@ -17,13 +17,10 @@ pub struct FloatingUnit {
     pub inner: [FloatingUnitInner; FU_SIZE],
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct FloatingUnitInner {
     pub qi: Option<RsId>,
 }
-
-
 
 impl FloatingUnit {
     pub fn new() -> FloatingUnit {

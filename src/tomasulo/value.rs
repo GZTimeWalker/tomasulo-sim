@@ -20,6 +20,10 @@ pub fn new(inner: ValueInner) -> Value {
     Rc::new(inner)
 }
 
+pub fn apply_op(t: Type, v1: Value, v2: Value) -> Value {
+    new(ValueInner::Op(t, v1, v2))
+}
+
 impl From<i64> for ValueInner {
     fn from(v: i64) -> ValueInner {
         ValueInner::Imm(v)
@@ -50,7 +54,7 @@ impl std::fmt::Display for ValueInner {
             ValueInner::Imm(v) => write!(f, "{v}"),
             ValueInner::Unit(u) => write!(f, "{u}"),
             ValueInner::MemAddr(v) => write!(f, "[{v}]"),
-            ValueInner::Op(t, v1, v2) => write!(f, "{v1} {t} {v2}"),
+            ValueInner::Op(t, v1, v2) => write!(f, "({v1} {t} {v2})"),
         }
     }
 }

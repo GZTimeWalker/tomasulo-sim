@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use super::*;
 
 #[allow(clippy::upper_case_acronyms)]
@@ -82,29 +84,41 @@ impl Instruction {
     pub fn write_cycle(&self) -> Option<u64> {
         self.write_cycle
     }
+}
 
-    pub fn parse(line: &str) -> Option<Instruction> {
-        let mut iter = line.split_whitespace();
-        let op = Type::parse(iter.next()?)?;
+impl FromStr for Instruction {
+    type Err = ();
 
-        let dest = Unit::parse(iter.next()?)?;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut iter = s.split_whitespace();
+        let op = iter.next().expect("no op").parse()?;
+
+        let dest = iter.next().expect("no dest").parse()?;
 
         let mut src1 = None;
         let mut src2 = None;
 
-        let next = iter.next()?;
-        src1.replace(value::new(match Unit::parse(next) {
-            Some(u) => u.into(),
-            None => next.trim_end_matches('+').parse::<i64>().ok()?.into()
+        let next = iter.next().expect("no src1");
+        src1.replace(value::new(match next.parse::<Unit>() {
+            Ok(u) => u.into(),
+            Err(_) => next
+                .trim_end_matches('+')
+                .parse::<i64>()
+                .map_err(|_| ())?
+                .into(),
         }));
 
-        let next = iter.next()?;
-        src2.replace(value::new(match Unit::parse(next) {
-            Some(u) => u.into(),
-            None => next.trim_end_matches('+').parse::<i64>().ok()?.into()
+        let next = iter.next().expect("no src2");
+        src2.replace(value::new(match next.parse::<Unit>() {
+            Ok(u) => u.into(),
+            Err(_) => next
+                .trim_end_matches('+')
+                .parse::<i64>()
+                .map_err(|_| ())?
+                .into(),
         }));
 
-        Some(Instruction {
+        Ok(Instruction {
             op,
             dest,
             src1,
@@ -117,16 +131,18 @@ impl Instruction {
     }
 }
 
-impl Type {
-    pub fn parse(line: &str) -> Option<Type> {
-        match line {
-            "ADDD" => Some(Type::ADDD),
-            "SUBD" => Some(Type::SUBD),
-            "MULTD" => Some(Type::MULTD),
-            "DIVD" => Some(Type::DIVD),
-            "LD" => Some(Type::LD),
-            "SD" => Some(Type::SD),
-            _ => None,
+impl FromStr for Type {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ADDD" => Ok(Type::ADDD),
+            "SUBD" => Ok(Type::SUBD),
+            "MULTD" => Ok(Type::MULTD),
+            "DIVD" => Ok(Type::DIVD),
+            "LD" => Ok(Type::LD),
+            "SD" => Ok(Type::SD),
+            _ => Err(()),
         }
     }
 }
@@ -162,7 +178,8 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let insts = [r"
+        let insts = [
+            r"
         LD F2 0 R2
         LD F4 0 R3
         DIVD F0 F4 F2
@@ -170,21 +187,23 @@ mod tests {
         ADDD F0 F4 F2
         SD F6 0 R3
         MULTD F6 F0 F2
-        SD F6 0 R1", r"
+        SD F6 0 R1",
+            r"
         LD F6 34+ R2
         LD F2 45+ R3
-        MULTD 0 F2 F4
+        MULTD F0 F2 F4
         SUBD F8 F6 F2
         DIVD F10 F0 F6
-        ADDD F6 F8 F2"];
+        ADDD F6 F8 F2",
+        ];
 
         for inst in insts.iter() {
             for line in inst.lines() {
                 if line.is_empty() {
                     continue;
                 }
-                if let Some(inst) = Instruction::parse(line.trim()) {
-                    println!("{inst}");
+                if let Some(inst) = line.trim().parse::<Instruction>().ok() {
+                    println!("{inst}, {inst:?}");
                 }
             }
             println!();

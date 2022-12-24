@@ -1,10 +1,12 @@
-pub mod rs;
 pub mod fu;
 pub mod regs;
+pub mod rs;
 
-pub use rs::*;
+use std::str::FromStr;
+
 pub use fu::*;
 pub use regs::*;
+pub use rs::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Unit {
@@ -16,24 +18,26 @@ pub enum Unit {
     Regs(RegId),
 }
 
-impl Unit {
-    pub fn parse(s: &str) -> Option<Unit> {
+impl FromStr for Unit {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.chars().next() {
             Some('R') => {
                 if let Ok(id) = s[1..].parse::<u8>() {
-                    Some(Unit::Regs(RegId::new(id)))
+                    Ok(Unit::Regs(RegId::new(id)))
                 } else {
-                    None
+                    Err(())
                 }
             }
             Some('F') => {
                 if let Ok(id) = s[1..].parse::<u8>() {
-                    Some(Unit::Fu(FuId::new(id)))
+                    Ok(Unit::Fu(FuId::new(id)))
                 } else {
-                    None
+                    Err(())
                 }
             }
-            _ => None
+            _ => Err(()),
         }
     }
 }
