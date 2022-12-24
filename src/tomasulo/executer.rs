@@ -49,13 +49,15 @@ impl Executer {
             self.write(&comp);
             self.finished = self.insts_comp.len() == self.inst_count;
             print!("{self:?}");
+            self.print_insts();
+            println!("{:=^60}\n", style("=").bold());
+
             self.clear_rs(&comp);
 
-            if self.cycle > 50 {
-                panic!("Cycle limit exceeded. (40 cycles)");
+            if self.cycle > 1000 {
+                panic!("Cycle limit exceeded. (1000 cycles)");
             }
         }
-        self.print_insts();
     }
 
     fn print_insts(&mut self) {
@@ -64,7 +66,6 @@ impl Executer {
         for inst in self.insts_comp.iter_mut() {
             println!("{inst}");
         }
-        println!();
     }
 
     fn issue(&mut self) {

@@ -81,6 +81,10 @@ impl FloatingUnitInner {
 impl std::fmt::Debug for FloatingUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         for (i, fu) in self.inner.iter().enumerate() {
+            if fu.qi.is_none() {
+                continue;
+            }
+
             let qi = match fu.qi {
                 Some(qi) => format!("{qi}"),
                 None => "None  ".to_string(),
