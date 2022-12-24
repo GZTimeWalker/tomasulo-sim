@@ -92,33 +92,25 @@ impl ReservationStation {
         self.inner.get_mut(&id)
     }
 
+    #[inline]
+    pub fn flush(&mut self, rs_id: RsId, value: Value) {
+        for inner in self.inner.values_mut() {
+            inner.flsuh(rs_id, &value);
+        }
+    }
+
+    #[inline]
     pub fn clear(&mut self) {
         for inner in self.inner.values_mut() {
             inner.clear();
         }
     }
 
-    pub fn exec(&mut self, fu: &FloatingUnit, cycle: u64) -> Vec<RsId> {
+    pub fn exec(&mut self, cycle: u64) -> Vec<RsId> {
         let mut ready = Vec::new();
         for inner in self.inner.values_mut() {
-            if inner.state == RsState::Busy {
-                if inner.is_ready() {
-                    inner.state = RsState::Calculating;
-                } else {
-                    if let Some(qj) = inner.qj {
-                        if let Some(value) = fu.try_get_value(qj) {
-                            inner.vj.replace(value);
-                            inner.qj = None;
-                        }
-                    }
-
-                    if let Some(qk) = inner.qk {
-                        if let Some(value) = fu.try_get_value(qk) {
-                            inner.vk.replace(value);
-                            inner.qk = None;
-                        }
-                    }
-                }
+            if inner.state == RsState::Busy && inner.is_ready() {
+                inner.state = RsState::Calculating;
             } else if inner.state == RsState::Calculating && inner.exec(cycle) == RsState::Ready {
                 ready.push(inner.id);
                 inner.state = RsState::Ready;
@@ -158,11 +150,6 @@ impl RsInner {
                     match *src1 {
                         ValueInner::Unit(Unit::Fu(fuid)) => {
                             let fu = fu.get(fuid);
-                            println!(
-                                "{} {}",
-                                style("fu").bold().dim(),
-                                style(format!("{fu:?}")).bold().dim()
-                            );
                             match &fu.value {
                                 Some(value) => {
                                     self.vj.replace(value.clone());
@@ -182,11 +169,6 @@ impl RsInner {
                     match *src2 {
                         ValueInner::Unit(Unit::Fu(fuid)) => {
                             let fu = fu.get(fuid);
-                            println!(
-                                "{} {}",
-                                style("fu").bold().dim(),
-                                style(format!("{fu:?}")).bold().dim()
-                            );
                             match &fu.value {
                                 Some(value) => {
                                     self.vk.replace(value.clone());
@@ -220,7 +202,8 @@ impl RsInner {
 
     pub fn is_ready(&self) -> bool {
         match self.inst.as_ref().unwrap().op {
-            Type::LD | Type::SD => self.vk.is_some(),
+            Type::SD => true, // assume that the address is always ready
+            Type::LD => self.vk.is_some(),
             _ => self.vj.is_some() && self.vk.is_some(),
         }
     }
@@ -258,6 +241,28 @@ impl RsInner {
             }
         } else {
             RsState::Free
+        }
+    }
+
+    pub fn flsuh(&mut self, rs_id: RsId, value: &Value) {
+        if self.state == RsState::Busy && !self.is_ready() {
+            if let Some(qj) = self.qj {
+                if qj == rs_id {
+                    self.vj.replace(value.clone());
+                    self.qj = None;
+                }
+            }
+
+            if let Some(qk) = self.qk {
+                if qk == rs_id {
+                    self.vk.replace(value.clone());
+                    self.qk = None;
+                }
+            }
+
+            if self.is_ready() {
+                self.state = RsState::Calculating;
+            }
         }
     }
 

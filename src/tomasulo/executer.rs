@@ -43,21 +43,28 @@ impl Executer {
     pub fn run(&mut self) {
         while !self.finished {
             self.cycle += 1;
-
             self.issue();
-            let comp = self.execute();
+            let comp = self.exec();
+            self.write(&comp);
             self.finished = self.insts_comp.len() == self.inst_count;
-            println!("{self:?}");
-            self.write(comp);
+            print!("{self:?}");
 
-            self.print_insts();
+            self.clear_rs(&comp);
+
+            if self.cycle > 100 {
+                panic!("Cycle limit exceeded. (100 cycles)");
+            }
         }
+        self.print_insts();
     }
 
     fn print_insts(&mut self) {
+        println!("{}", style("Instructions:").yellow().bold());
+        self.insts_comp.sort_by_key(|i| i.emit_cycle.unwrap_or(0));
         for inst in self.insts_comp.iter_mut() {
             println!("{inst}");
         }
+        println!();
     }
 
     fn issue(&mut self) {
@@ -78,21 +85,33 @@ impl Executer {
     }
 
     #[inline]
-    fn execute(&mut self) -> Vec<RsId> {
-        self.rs.exec(&self.fu, self.cycle)
+    fn exec(&mut self) -> Vec<RsId> {
+        self.rs.exec(self.cycle)
     }
 
-    fn write(&mut self, comp: Vec<RsId>) {
+    fn write(&mut self, comp: &Vec<RsId>) {
+        let mut boardcast = Vec::new();
         for rs_id in comp {
-            if let Some(rs) = self.rs.get_mut(rs_id) {
+            if let Some(rs) = self.rs.get_mut(*rs_id) {
                 if let Some(Unit::Fu(fu_id)) = rs.dest() {
                     let value = rs.result().unwrap();
+                    boardcast.push((*rs_id, value.clone()));
                     self.fu.mark_ready(*fu_id, value);
                     let mut inst = rs.take().unwrap();
                     inst.write(self.cycle);
                     self.insts_comp.push(inst);
-                    rs.clear();
                 }
+            }
+        }
+        for (rs_id, value) in boardcast {
+            self.rs.flush(rs_id, value);
+        }
+    }
+
+    fn clear_rs(&mut self, comp: &Vec<RsId>) {
+        for rs_id in comp {
+            if let Some(rs) = self.rs.get_mut(*rs_id) {
+                rs.clear();
             }
         }
     }

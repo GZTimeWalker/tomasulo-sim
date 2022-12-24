@@ -23,6 +23,7 @@ pub struct Instruction {
     pub src2: Option<Value>,
 
     pub emit_cycle: Option<u64>,
+    pub start_cycle: Option<u64>,
     pub exec_cycle: Option<u64>,
     pub write_cycle: Option<u64>,
 
@@ -37,6 +38,7 @@ impl Instruction {
             src1: None,
             src2: None,
             emit_cycle: None,
+            start_cycle: None,
             exec_cycle: None,
             write_cycle: None,
             left_cycle: None,
@@ -60,9 +62,10 @@ impl Instruction {
         if let Some(left) = self.left_cycle {
             if left == 0 {
                 self.left_cycle.take();
+                self.exec_cycle.replace(cycle - 1);
                 true
             } else if left == self.latency() {
-                self.exec_cycle.replace(cycle);
+                self.start_cycle.replace(cycle);
                 self.left_cycle.replace(left - 1);
                 false
             } else {
@@ -119,6 +122,7 @@ impl FromStr for Instruction {
             src2,
             emit_cycle: None,
             exec_cycle: None,
+            start_cycle: None,
             write_cycle: None,
             left_cycle: None,
         })
@@ -180,6 +184,10 @@ impl std::fmt::Display for Instruction {
             Some(c) => c.to_string(),
             None => " ".to_string(),
         };
+        let start = match self.start_cycle {
+            Some(c) => c.to_string(),
+            None => " ".to_string(),
+        };
         let exec = match self.exec_cycle {
             Some(c) => c.to_string(),
             None => " ".to_string(),
@@ -190,9 +198,10 @@ impl std::fmt::Display for Instruction {
         };
         write!(
             f,
-            "{:<20}: {:>3}, {:>3}, {:>3}",
+            "{:<20}: {:>3}, {:>3}, {:>3}, {:>3}",
             style(inst).white().bold(),
             style(emit).red(),
+            style(start).blue(),
             style(exec).yellow(),
             style(write).green()
         )?;
