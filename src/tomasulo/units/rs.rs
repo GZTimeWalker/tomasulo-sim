@@ -45,6 +45,8 @@ pub struct RsInner {
 }
 
 pub struct ReservationStation {
+    /// use BTreeMap to make the order of
+    /// reservation stations deterministic.
     inner: BTreeMap<RsId, RsInner>,
 }
 

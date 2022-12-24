@@ -47,14 +47,23 @@ impl Executer {
         while !self.finished {
             println!("{:=^60}", style("=").bold());
             self.cycle += 1;
+
+            // issue new instructions
             self.issue();
+            // execute instructions
             let comp = self.exec();
+            // write back the result
             self.write(&comp);
+
+            // check if all instructions are completed
             self.finished = self.insts_comp.len() == self.inst_count;
+
+            // print the current state
             print!("{self:?}");
             self.print_insts();
             println!("{:=^60}\n", style("=").bold());
 
+            // clear the reservation station which has completed instructions
             self.clear_rs(&comp);
 
             // avoid infinite loop
@@ -92,6 +101,7 @@ impl Executer {
                             }
                         }
                     }
+                    // only issue one instruction per cycle
                     return;
                 }
             }

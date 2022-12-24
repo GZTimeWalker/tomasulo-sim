@@ -27,6 +27,7 @@ pub struct Instruction {
     pub exec_cycle: Option<u64>,
     pub write_cycle: Option<u64>,
 
+    // The number of cycles left to finish the instruction.
     left_cycle: Option<u64>,
 }
 
