@@ -2,6 +2,8 @@
 name = "tomasulo-sim"
 version = "0.1.0"
 edition = "2021"
+authors = ["GZTime <Time.GZ@outlook.com>"]
+description = "A Tomasulo simulator written in Rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

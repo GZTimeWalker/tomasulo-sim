@@ -90,7 +90,7 @@ impl std::fmt::Debug for FloatingUnit {
                 None => "None  ".to_string(),
             };
             let value = match &fu.value {
-                Some(value) => style(format!("{value}")).green().underlined(),
+                Some(value) => style(format!("{value}")).cyan().underlined(),
                 None => style("None".to_string()).white(),
             };
             let fuid = FuId::new(i as u8 * 2);

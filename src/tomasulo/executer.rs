@@ -54,6 +54,7 @@ impl Executer {
 
             self.clear_rs(&comp);
 
+            // avoid infinite loop
             if self.cycle > 1000 {
                 panic!("Cycle limit exceeded. (1000 cycles)");
             }
