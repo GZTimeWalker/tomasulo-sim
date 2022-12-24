@@ -78,6 +78,7 @@ impl ReservationStation {
         ReservationStation { inner }
     }
 
+    /// Get a free reservation station.
     pub fn get_free(&self, rs_type: RsType) -> Option<RsId> {
         for inner in self.inner.values() {
             if inner.id.0 == rs_type && inner.state == RsState::Free {
@@ -87,11 +88,13 @@ impl ReservationStation {
         None
     }
 
+    /// Get a reservation station by id.
     #[inline]
     pub fn get_mut(&mut self, id: RsId) -> Option<&mut RsInner> {
         self.inner.get_mut(&id)
     }
 
+    /// Flush the reservation station with a broadcast value.
     #[inline]
     pub fn flush(&mut self, rs_id: RsId, value: Value) {
         for inner in self.inner.values_mut() {
@@ -99,6 +102,7 @@ impl ReservationStation {
         }
     }
 
+    /// Clear all reservation stations.
     #[inline]
     pub fn clear(&mut self) {
         for inner in self.inner.values_mut() {
@@ -106,6 +110,7 @@ impl ReservationStation {
         }
     }
 
+    /// Execute the reservation station.
     pub fn exec(&mut self, cycle: u64) -> Vec<RsId> {
         let mut ready = Vec::new();
         for inner in self.inner.values_mut() {
@@ -135,6 +140,7 @@ impl RsInner {
         }
     }
 
+    /// Apply an instruction to the reservation station.
     pub fn apply(&mut self, mut inst: Instruction, fu: &FloatingUnit, cycle: u64) {
         inst.emit(cycle);
 
@@ -235,6 +241,7 @@ impl RsInner {
         self.result.clone()
     }
 
+    /// Execute the reservation station.
     pub fn exec(&mut self, cycle: u64) -> RsState {
         if let Some(inst) = self.inst.as_mut() {
             let op = inst.op;
@@ -261,6 +268,10 @@ impl RsInner {
         }
     }
 
+    /// Flush the reservation station.
+    ///
+    /// This will fill the value of the reservation station
+    /// if the value has been calculated.
     pub fn flsuh(&mut self, rs_id: RsId, value: &Value) {
         if self.state == RsState::Busy && !self.is_ready() {
             if let Some(qj) = self.qj {
@@ -283,6 +294,7 @@ impl RsInner {
         }
     }
 
+    /// Take the instruction out of the reservation station.
     pub fn take(&mut self) -> Option<Instruction> {
         self.inst.take()
     }

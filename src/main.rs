@@ -1,4 +1,4 @@
-use tomasulo_sim::tomasulo::{executer, Instruction};
+use tomasulo_sim::{executer, Instruction};
 
 fn main() {
     let insts = [

@@ -36,12 +36,14 @@ impl FloatingUnit {
         }
     }
 
+    /// Mark the floating unit as busy.
     pub fn mark_busy(&mut self, id: FuId, qi: RsId) {
         let fu = &mut self.inner[id.0 as usize / 2];
         fu.qi = Some(qi);
         fu.value = None;
     }
 
+    /// Mark the floating unit as ready.
     pub fn mark_ready(&mut self, id: FuId, value: Value) {
         let fu = &mut self.inner[id.0 as usize / 2];
         fu.value = Some(value);

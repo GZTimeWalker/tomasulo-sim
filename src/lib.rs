@@ -1,4 +1,4 @@
-#[allow(dead_code)]
 #[allow(clippy::new_without_default)]
+mod tomasulo;
 
-pub mod tomasulo;
+pub use tomasulo::*;

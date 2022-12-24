@@ -53,11 +53,13 @@ impl Instruction {
         }
     }
 
+    /// Emit the instruction.
     pub fn emit(&mut self, cycle: u64) {
         self.emit_cycle.replace(cycle);
         self.left_cycle.replace(self.latency());
     }
 
+    /// Execute the instruction.
     pub fn exec(&mut self, cycle: u64) -> bool {
         if let Some(left) = self.left_cycle {
             if left == 0 {

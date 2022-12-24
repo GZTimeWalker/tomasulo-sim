@@ -26,12 +26,14 @@ impl Executer {
         }
     }
 
+    /// Add instructions to the executer.
     #[inline]
     pub fn add_insts(&mut self, inst: &[Instruction]) {
         self.insts.extend(inst.iter().cloned());
         self.inst_count = inst.len();
     }
 
+    /// Clear the executer.
     pub fn clear(&mut self) {
         self.rs.clear();
         self.fu.clear();
@@ -40,6 +42,7 @@ impl Executer {
         self.finished = false;
     }
 
+    /// Run the simulation.
     pub fn run(&mut self) {
         while !self.finished {
             println!("{:=^60}", style("=").bold());
@@ -61,6 +64,7 @@ impl Executer {
         }
     }
 
+    /// Print the completed instructions.
     fn print_insts(&mut self) {
         println!("{}", style("Instructions:").yellow().bold());
         self.insts_comp.sort_by_key(|i| i.emit_cycle.unwrap_or(0));
@@ -69,6 +73,7 @@ impl Executer {
         }
     }
 
+    /// Issue instructions to the reservation station.
     fn issue(&mut self) {
         if let Some(inst) = self.insts.pop_front() {
             if let Some(rs_id) = self.rs.get_free(inst.op.into()) {
@@ -94,11 +99,15 @@ impl Executer {
         }
     }
 
+    /// Execute instructions in the reservation station.
     #[inline]
     fn exec(&mut self) -> Vec<RsId> {
         self.rs.exec(self.cycle)
     }
 
+    /// Write the result back from the reservation station to the FU.
+    ///
+    /// This will also broadcast the result to the other reservation stations.
     fn write(&mut self, comp: &Vec<RsId>) {
         let mut boardcast = Vec::new();
         for rs_id in comp {
@@ -118,6 +127,10 @@ impl Executer {
         }
     }
 
+    /// Clear the reservation station.
+    ///
+    /// Clear the reservation station after print it to the screen
+    /// thus we can see the result of the previous cycle.
     fn clear_rs(&mut self, comp: &Vec<RsId>) {
         for rs_id in comp {
             if let Some(rs) = self.rs.get_mut(*rs_id) {
