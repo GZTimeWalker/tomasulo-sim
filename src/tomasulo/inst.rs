@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use console::style;
+
 use super::*;
 
 #[allow(clippy::upper_case_acronyms)]
@@ -13,16 +15,16 @@ pub enum Type {
     SD,
 }
 
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
     pub op: Type,
     pub dest: Unit,
     pub src1: Option<Value>,
     pub src2: Option<Value>,
 
-    emit_cycle: Option<u64>,
-    exec_cycle: Option<u64>,
-    write_cycle: Option<u64>,
+    pub emit_cycle: Option<u64>,
+    pub exec_cycle: Option<u64>,
+    pub write_cycle: Option<u64>,
 
     left_cycle: Option<u64>,
 }
@@ -57,9 +59,12 @@ impl Instruction {
     pub fn exec(&mut self, cycle: u64) -> bool {
         if let Some(left) = self.left_cycle {
             if left == 0 {
-                self.exec_cycle.replace(cycle);
                 self.left_cycle.take();
                 true
+            } else if left == self.latency() {
+                self.exec_cycle.replace(cycle);
+                self.left_cycle.replace(left - 1);
+                false
             } else {
                 self.left_cycle.replace(left - 1);
                 false
@@ -69,20 +74,9 @@ impl Instruction {
         }
     }
 
+    #[inline]
     pub fn write(&mut self, cycle: u64) {
         self.write_cycle.replace(cycle);
-    }
-
-    pub fn emit_cycle(&self) -> Option<u64> {
-        self.emit_cycle
-    }
-
-    pub fn exec_cycle(&self) -> Option<u64> {
-        self.exec_cycle
-    }
-
-    pub fn write_cycle(&self) -> Option<u64> {
-        self.write_cycle
     }
 }
 
@@ -147,27 +141,61 @@ impl FromStr for Type {
     }
 }
 
+impl Type {
+    pub fn op_str(&self) -> &'static str {
+        match self {
+            Type::ADDD => "+",
+            Type::SUBD => "-",
+            Type::MULTD => "*",
+            Type::DIVD => "/",
+            _ => "",
+        }
+    }
+}
+
 impl std::fmt::Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Type::ADDD => write!(f, "+"),
-            Type::SUBD => write!(f, "-"),
-            Type::MULTD => write!(f, "*"),
-            Type::DIVD => write!(f, "/"),
-            _ => Ok(()),
-        }
+        let s = match self {
+            Type::ADDD => style(format!("{:?}", self)).green(),
+            Type::SUBD => style(format!("{:?}", self)).red(),
+            Type::MULTD => style(format!("{:?}", self)).yellow(),
+            Type::DIVD => style(format!("{:?}", self)).blue(),
+            Type::LD => style(format!("{:?}", self)).cyan(),
+            Type::SD => style(format!("{:?}", self)).magenta(),
+        };
+        write!(f, "{:<5}", s)
     }
 }
 
 impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?} {} ", self.op, self.dest)?;
-        if let Some(src1) = self.src1.as_ref() {
-            write!(f, "{src1} ")?;
-        }
-        if let Some(src2) = self.src2.as_ref() {
-            write!(f, "{src2} ")?;
-        }
+        let inst = format!(
+            "{:?} {} {} {}",
+            self.op,
+            self.dest,
+            self.src1.as_ref().unwrap(),
+            self.src2.as_ref().unwrap()
+        );
+        let emit = match self.emit_cycle {
+            Some(c) => c.to_string(),
+            None => " ".to_string(),
+        };
+        let exec = match self.exec_cycle {
+            Some(c) => c.to_string(),
+            None => " ".to_string(),
+        };
+        let write = match self.write_cycle {
+            Some(c) => c.to_string(),
+            None => " ".to_string(),
+        };
+        write!(
+            f,
+            "{:<20}: {:>3}, {:>3}, {:>3}",
+            style(inst).white().bold(),
+            style(emit).red(),
+            style(exec).yellow(),
+            style(write).green()
+        )?;
         Ok(())
     }
 }

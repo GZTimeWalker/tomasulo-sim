@@ -1,3 +1,5 @@
+use console::style;
+
 use crate::tomasulo::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -5,28 +7,44 @@ pub struct FuId(u8);
 
 impl FuId {
     pub fn new(id: u8) -> FuId {
-        assert!(id % 2 == 0 && id < FU_SIZE as u8);
+        assert!(id % 2 == 0 && id < 2 * FU_SIZE as u8);
         FuId(id)
     }
 }
 
 pub const FU_SIZE: usize = 16;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq)]
 pub struct FloatingUnit {
     pub inner: [FloatingUnitInner; FU_SIZE],
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct FloatingUnitInner {
     pub qi: Option<RsId>,
+    pub value: Option<Value>,
 }
 
 impl FloatingUnit {
     pub fn new() -> FloatingUnit {
         FloatingUnit {
-            inner: [FloatingUnitInner::default(); FU_SIZE],
+            inner: (0..FU_SIZE)
+                .map(|v| FloatingUnitInner::default().with_value(2f64 * v as f64))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
         }
+    }
+
+    pub fn mark_busy(&mut self, id: FuId, qi: RsId) {
+        let fu = &mut self.inner[id.0 as usize / 2];
+        fu.qi = Some(qi);
+        fu.value = None;
+    }
+
+    pub fn mark_ready(&mut self, id: FuId, value: Value) {
+        let fu = &mut self.inner[id.0 as usize / 2];
+        fu.value = Some(value);
     }
 
     pub fn get(&self, id: FuId) -> &FloatingUnitInner {
@@ -36,10 +54,56 @@ impl FloatingUnit {
     pub fn get_mut(&mut self, id: FuId) -> &mut FloatingUnitInner {
         &mut self.inner[id.0 as usize / 2]
     }
+
+    pub fn clear(&mut self) {
+        for fu in self.inner.iter_mut() {
+            fu.qi.take();
+        }
+    }
+
+    pub fn try_get_value(&self, id: RsId) -> Option<Value> {
+        for fu in self.inner.iter() {
+            if fu.qi == Some(id) {
+                return fu.value.clone();
+            }
+        }
+        None
+    }
+}
+
+impl FloatingUnitInner {
+    pub fn with_value(mut self, val: f64) -> Self {
+        self.value.replace(value::new(ValueInner::Float(val)));
+        self
+    }
+}
+
+impl std::fmt::Debug for FloatingUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        for (i, fu) in self.inner.iter().enumerate() {
+            let qi = match fu.qi {
+                Some(qi) => format!("{}", qi),
+                None => "None  ".to_string(),
+            };
+            let value = match &fu.value {
+                Some(value) => style(format!("{}", value)).green().underlined(),
+                None => style("None".to_string()).white(),
+            };
+            let fuid = FuId::new(i as u8 * 2);
+            writeln!(
+                f,
+                "{} : {} -> {}",
+                style(fuid).magenta().underlined(),
+                qi,
+                value
+            )?;
+        }
+        Ok(())
+    }
 }
 
 impl std::fmt::Display for FuId {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "F{}", self.0)
+        write!(f, "F{:02}", self.0)
     }
 }
