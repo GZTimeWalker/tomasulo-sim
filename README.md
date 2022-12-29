@@ -24,3 +24,4 @@ This is only a **course project**, so it is not well tested. If you find any bug
 
 ![demo](./assets/demo1.png)
 ![demo](./assets/demo2.png)
+![demo](./assets/demo3.png)
