@@ -125,7 +125,7 @@ impl Executer {
                 if let Some(Unit::Fu(fu_id)) = rs.dest() {
                     let value = rs.result().unwrap();
                     boardcast.push((*rs_id, value.clone()));
-                    self.fu.mark_ready(*fu_id, value);
+                    self.fu.mark_ready(*fu_id, rs.id, value);
                     let mut inst = rs.take().unwrap();
                     inst.write(self.cycle);
                     self.insts_comp.push(inst);

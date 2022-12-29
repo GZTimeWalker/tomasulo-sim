@@ -44,32 +44,21 @@ impl FloatingUnit {
     }
 
     /// Mark the floating unit as ready.
-    pub fn mark_ready(&mut self, id: FuId, value: Value) {
+    pub fn mark_ready(&mut self, id: FuId, qi: RsId, value: Value) {
         let fu = &mut self.inner[id.0 as usize / 2];
-        fu.value = Some(value);
+        if fu.qi == Some(qi) {
+            fu.value = Some(value);
+        }
     }
 
     pub fn get(&self, id: FuId) -> &FloatingUnitInner {
         &self.inner[id.0 as usize / 2]
     }
 
-    pub fn get_mut(&mut self, id: FuId) -> &mut FloatingUnitInner {
-        &mut self.inner[id.0 as usize / 2]
-    }
-
     pub fn clear(&mut self) {
         for fu in self.inner.iter_mut() {
             fu.qi.take();
         }
-    }
-
-    pub fn try_get_value(&self, id: RsId) -> Option<Value> {
-        for fu in self.inner.iter() {
-            if fu.qi == Some(id) {
-                return fu.value.clone();
-            }
-        }
-        None
     }
 }
 
